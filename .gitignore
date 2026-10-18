@@ -1,0 +1,8 @@
+# ASF runtime files
+asf/
+output/
+temp/
+*.log
+*.pid
+asf-input
+mode.conf
