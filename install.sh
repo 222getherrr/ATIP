@@ -85,11 +85,35 @@ bootstrap_termux_proot() {
         log "proot-distro already installed"
     fi
 
+    # Docker Hub anonymous pulls are often rejected from CN networks, which
+    # surfaces as: "Unauthorized: 'ubuntu' does not exist or is a private
+    # image". proot-distro honours PD_DOCKER_MIRROR, so retry with public
+    # mirrors when the default registry fails.
+    local pd_mirrors=(
+        "docker.m.daocloud.io"
+        "docker.1ms.run"
+        "docker.1panel.live"
+    )
+
+    install_distro() { # $1 = distro alias; returns 0 on success
+        local m
+        for m in "" "${pd_mirrors[@]}"; do
+            if [[ -z "$m" ]]; then
+                log "Installing proot $1 (default Docker registry)"
+                proot-distro install "$1" && return 0
+            else
+                warn "proot-distro install $1 failed - retrying via mirror $m"
+                PD_DOCKER_MIRROR="$m" proot-distro install "$1" && return 0
+            fi
+        done
+        return 1
+    }
+
     local PROOT_DISTRO="ubuntu-22.04"
-    if ! proot-distro install ubuntu-22.04; then
+    if ! install_distro ubuntu-22.04; then
         warn "proot-distro install ubuntu-22.04 failed - falling back to 'ubuntu' (version may not be 22.04)"
         PROOT_DISTRO="ubuntu"
-        if ! proot-distro install ubuntu; then
+        if ! install_distro ubuntu; then
             die "Failed to install a proot Ubuntu distribution"
         fi
     fi
