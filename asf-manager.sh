@@ -39,7 +39,7 @@ if [[ -f "$ASF_HOME/manager.conf" ]]; then
     source "$ASF_HOME/manager.conf"
 fi
 MIRROR="${MIRROR:-https://ghfast.top/}"
-REPO_RAW="${REPO_RAW:-https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main}"
+REPO_RAW="${REPO_RAW:-https://raw.githubusercontent.com/222getherrr/ATIP/main}"
 DOTNET_INSTALL_URL="${DOTNET_INSTALL_URL:-https://dot.net/v1/dotnet-install.sh}"
 
 ASF_DIR="$ASF_HOME/asf"

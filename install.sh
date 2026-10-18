@@ -3,7 +3,7 @@
 #  ASF Manager - one-line installer
 #
 #  Usage:
-#    curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | bash
+#    curl -fsSL https://raw.githubusercontent.com/222getherrr/ATIP/main/install.sh | bash
 #
 #  What it does:
 #    1. Validates the host OS (Termux proot Ubuntu / Ubuntu / Debian)
