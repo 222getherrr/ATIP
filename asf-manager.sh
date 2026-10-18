@@ -338,7 +338,7 @@ read_key() { # prints UP / DOWN / RIGHT / LEFT / ENTER / ESC / IGNORE
         esac
     else
         case "$k" in
-            '' | $'\n') echo ENTER ;;
+            '' | $'\n' | $'\r') echo ENTER ;;  # LF (canonical tty) and CR (Termux virtual keyboard sends CR) both mean Enter
             *) echo IGNORE ;;
         esac
     fi
