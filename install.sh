@@ -21,7 +21,7 @@
 #                    Every GitHub download is prefixed with this value.
 #    ASF_HOME      - installation root, default: $HOME/.asf
 #    REPO_RAW      - raw base URL of this project's GitHub repo.
-#                    IMPORTANT: replace YOUR_USER/YOUR_REPO below at packaging time.
+#                    pointing to the live repo (222getherrr/ATIP).
 #
 #  Project policy:
 #    * English comments and English user-facing text only.
@@ -34,7 +34,7 @@ set -euo pipefail
 ASF_VERSION="${ASF_VERSION:-6.3.10.6}"
 MIRROR="${MIRROR:-https://ghfast.top/}"
 ASF_HOME="${ASF_HOME:-$HOME/.asf}"
-REPO_RAW="${REPO_RAW:-https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main}"
+REPO_RAW="${REPO_RAW:-https://raw.githubusercontent.com/222getherrr/ATIP/main}"
 DOTNET_INSTALL_URL="${DOTNET_INSTALL_URL:-https://dot.net/v1/dotnet-install.sh}"
 
 log() { printf '\033[1;32m[ASF]\033[0m %s\n' "$*"; }

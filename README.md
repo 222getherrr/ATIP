@@ -28,7 +28,7 @@ It downloads the generic ASF package through a GitHub acceleration mirror, manag
 ## One-line install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/222getherrr/ATIP/main/install.sh | bash
 ```
 
 The script validates the OS, installs missing tools (curl, unzip, python3, ncurses via apt), downloads ASF generic, installs the required .NET runtime, and writes the manager plus a default global config.
