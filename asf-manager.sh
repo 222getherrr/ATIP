@@ -361,11 +361,36 @@ menu() {
         done
         key=$(read_key)
         case "$key" in
-            UP)   ((sel = sel > 0 ? sel - 1 : n - 1)) ;;
-            DOWN) ((sel = sel < n - 1 ? sel + 1 : 0)) ;;
-            ENTER) MENU_SEL=$sel; return 0 ;;
-            ESC)   MENU_SEL=255; return 0 ;;  # return 0: a non-zero return would trip set -e and kill the whole TUI before the caller's case runs
-            IGNORE) ;;  # ignore function keys / stray chars, keep looping
+            UP)
+                # Explicit if/else instead of `((sel = ...))`: an arithmetic
+                # expression that evaluates to 0 returns status 1, and under
+                # `set -e` that would kill the whole TUI the moment the cursor
+                # wraps around the menu edge (e.g. DOWN on the last item).
+                if ((sel == 0)); then
+                    sel=$((n - 1))
+                else
+                    sel=$((sel - 1))
+                fi
+                ;;
+            DOWN)
+                if ((sel == n - 1)); then
+                    sel=0
+                else
+                    sel=$((sel + 1))
+                fi
+                ;;
+            RIGHT|LEFT)
+                ;;  # not bound in this menu - keep looping
+            ENTER)
+                MENU_SEL=$sel
+                return 0
+                ;;
+            ESC)
+                MENU_SEL=255
+                return 0  # return 0: a non-zero return would trip set -e and kill the whole TUI before the caller's case runs
+                ;;
+            IGNORE)
+                ;;  # ignore function keys / stray chars, keep looping
         esac
     done
 }
