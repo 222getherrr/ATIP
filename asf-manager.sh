@@ -312,22 +312,29 @@ update_project() {
 #  TUI primitives
 # -----------------------------------------------------------------------------
 read_key() { # prints UP / DOWN / RIGHT / LEFT / ENTER / ESC / IGNORE
-    # Read a single char; when it is ESC, read up to two more chars to tell
-    # arrow keys from other escape sequences. A lone ESC (nothing follows
-    # within the timeout) is the real ESC key; any other escape sequence
-    # (Home/End/PgUp/PgDn/Insert/Delete/F1-F12, ...) and any plain character
-    # are reported as IGNORE so the TUI never quits or acts on them.
-    local k k2
+    # Read a single char; when it is ESC, wait a short window for the rest of
+    # the escape sequence. CSI ([...) and SS3 (O...) sequences are decoded so
+    # arrow keys are recognised even on slow terminals / Termux / SSH, while
+    # Home/End/PgUp/PgDn/Insert/Delete/F1-F12 and any plain character are
+    # reported as IGNORE so the TUI never quits or acts on them. A lone ESC
+    # (nothing follows within the window) is the real ESC key.
+    local k k2 k3
     IFS= read -rsn1 k
     if [[ "$k" == $'\e' ]]; then
-        IFS= read -rsn2 -t 0.1 k2 || true
+        IFS= read -rsn1 -t 0.3 k2 || k2=''
         case "$k2" in
-            '[A') echo UP ;;
-            '[B') echo DOWN ;;
-            '[C') echo RIGHT ;;
-            '[D') echo LEFT ;;
-            '')   echo ESC ;;
-            *)    echo IGNORE ;;
+            '['|'O')
+                IFS= read -rsn1 -t 0.3 k3 || k3=''
+                case "$k3" in
+                    A) echo UP ;;
+                    B) echo DOWN ;;
+                    C) echo RIGHT ;;
+                    D) echo LEFT ;;
+                    *) echo IGNORE ;;
+                esac
+                ;;
+            '')  echo ESC ;;
+            *)   echo IGNORE ;;
         esac
     else
         case "$k" in
@@ -357,7 +364,7 @@ menu() {
             UP)   ((sel = sel > 0 ? sel - 1 : n - 1)) ;;
             DOWN) ((sel = sel < n - 1 ? sel + 1 : 0)) ;;
             ENTER) MENU_SEL=$sel; return 0 ;;
-            ESC)   MENU_SEL=255; return 255 ;;
+            ESC)   MENU_SEL=255; return 0 ;;  # return 0: a non-zero return would trip set -e and kill the whole TUI before the caller's case runs
             IGNORE) ;;  # ignore function keys / stray chars, keep looping
         esac
     done
