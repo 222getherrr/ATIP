@@ -58,10 +58,47 @@ detect_os() {
         OS_NAME="ubuntu"
     elif [[ "$os_id" == "debian" || "$os_like" == *"debian"* ]]; then
         OS_NAME="debian"
+    elif [[ -n "${PREFIX:-}" && -d "$PREFIX" ]]; then
+        # Termux native environment: /etc/os-release is absent or not
+        # ubuntu/debian, but $PREFIX points to the Termux prefix dir.
+        OS_NAME="termux"
     else
         die "Unsupported OS (id=$os_id). Supported: Termux(proot Ubuntu), Ubuntu, Debian."
     fi
     log "Detected OS: $OS_NAME"
+}
+
+# -----------------------------------------------------------------------------
+#  Bootstrap Termux native environment: proot-distro + Ubuntu 22.04
+#  Runs the rest of this installer inside the proot Ubuntu container, where
+#  /etc/os-release is ubuntu, so the termux branch will not trigger again.
+# -----------------------------------------------------------------------------
+bootstrap_termux_proot() {
+    log "Termux native environment detected - bootstrapping proot-distro Ubuntu"
+
+    if ! command -v proot-distro >/dev/null 2>&1; then
+        log "Installing proot-distro via pkg"
+        if ! pkg install -y proot-distro; then
+            die "Failed to install proot-distro (pkg install -y proot-distro)"
+        fi
+    else
+        log "proot-distro already installed"
+    fi
+
+    local PROOT_DISTRO="ubuntu-22.04"
+    if ! proot-distro install ubuntu-22.04; then
+        warn "proot-distro install ubuntu-22.04 failed - falling back to 'ubuntu' (version may not be 22.04)"
+        PROOT_DISTRO="ubuntu"
+        if ! proot-distro install ubuntu; then
+            die "Failed to install a proot Ubuntu distribution"
+        fi
+    fi
+
+    log "Installing curl inside proot $PROOT_DISTRO and continuing installation"
+    proot-distro login "$PROOT_DISTRO" -- bash -c \
+        "apt-get update -y && apt-get install -y curl && curl -fsSL $REPO_RAW/install.sh | bash" \
+        || die "Installation inside proot $PROOT_DISTRO failed"
+    log "Proot Ubuntu installation completed"
 }
 
 # -----------------------------------------------------------------------------
@@ -249,6 +286,12 @@ JSON
 main() {
     log "ASF Manager installer starting"
     detect_os
+    if [[ "$OS_NAME" == "termux" ]]; then
+        # Native Termux: bootstrap a proot Ubuntu container and let it run
+        # the rest of this installer, then stop here.
+        bootstrap_termux_proot
+        exit 0
+    fi
     detect_arch
     ensure_tools
     install_asf

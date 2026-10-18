@@ -260,8 +260,10 @@ live_log() {
     local tailpid=$!
     local key
     while :; do
-        IFS= read -rsn1 key
-        [[ "$key" == $'\e' ]] && break
+        key=$(read_key)
+        # ESC quits live log; any other key (including function keys and
+        # stray chars, reported as IGNORE) just keeps the loop running.
+        [[ "$key" == "ESC" ]] && break
     done
     kill "$tailpid" 2>/dev/null || true
     wait "$tailpid" 2>/dev/null || true
@@ -309,7 +311,12 @@ update_project() {
 # -----------------------------------------------------------------------------
 #  TUI primitives
 # -----------------------------------------------------------------------------
-read_key() { # prints UP / DOWN / ENTER / ESC / other char
+read_key() { # prints UP / DOWN / RIGHT / LEFT / ENTER / ESC / IGNORE
+    # Read a single char; when it is ESC, read up to two more chars to tell
+    # arrow keys from other escape sequences. A lone ESC (nothing follows
+    # within the timeout) is the real ESC key; any other escape sequence
+    # (Home/End/PgUp/PgDn/Insert/Delete/F1-F12, ...) and any plain character
+    # are reported as IGNORE so the TUI never quits or acts on them.
     local k k2
     IFS= read -rsn1 k
     if [[ "$k" == $'\e' ]]; then
@@ -319,12 +326,13 @@ read_key() { # prints UP / DOWN / ENTER / ESC / other char
             '[B') echo DOWN ;;
             '[C') echo RIGHT ;;
             '[D') echo LEFT ;;
-            *)    echo ESC ;;
+            '')   echo ESC ;;
+            *)    echo IGNORE ;;
         esac
     else
         case "$k" in
             '' | $'\n') echo ENTER ;;
-            *) echo "$k" ;;
+            *) echo IGNORE ;;
         esac
     fi
 }
@@ -350,6 +358,7 @@ menu() {
             DOWN) ((sel = sel < n - 1 ? sel + 1 : 0)) ;;
             ENTER) MENU_SEL=$sel; return 0 ;;
             ESC)   MENU_SEL=255; return 255 ;;
+            IGNORE) ;;  # ignore function keys / stray chars, keep looping
         esac
     done
 }

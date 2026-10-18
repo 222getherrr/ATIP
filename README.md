@@ -21,7 +21,8 @@ It downloads the generic ASF package through a GitHub acceleration mirror, manag
 
 | Environment | Notes |
 |---|---|
-| Termux (proot Ubuntu) | arm64 on typical phones |
+| Termux (native) | Auto-detected by `install.sh`: it bootstraps `proot-distro` + Ubuntu 22.04 and continues the installation inside the container; arm64 on typical phones |
+| Termux (proot Ubuntu) | Manual proot setups are detected as Ubuntu and installed directly |
 | Ubuntu | x64 / arm64 |
 | Debian | x64 / arm64 |
 
@@ -32,6 +33,8 @@ curl -fsSL https://raw.githubusercontent.com/222getherrr/ATIP/main/install.sh | 
 ```
 
 The script validates the OS, installs missing tools (curl, unzip, python3, ncurses via apt), downloads ASF generic, installs the required .NET runtime, and writes the manager plus a default global config.
+
+On a native Termux environment the script automatically installs `proot-distro`, bootstraps Ubuntu 22.04 (falling back to the default `ubuntu` image if the 22.04 image is unavailable), and continues the whole installation inside that container - no manual proot setup is needed.
 
 ### Optional environment variables
 
@@ -56,6 +59,8 @@ Main menu:
 4. **Update Project** - compares `version.txt` with the release version file and offers to replace the manager
 5. **Account Config** - add / edit / delete bots; each bot can also be edited as raw JSON with your `$EDITOR`; ASF hot-reloads config changes
 6. **Farm Mode Switch** - per bot: auto card farming, or play-only with a comma-separated APPID list (e.g. `730,570`)
+
+**TUI controls:** only the **arrow keys** (up / down), **Enter** and **ESC** are handled. Every other key - including Home / End / PgUp / PgDn / Insert / Delete and the F1-F12 function keys - is ignored, so accidental presses never quit the TUI or trigger an action. In the live log, `ESC` is the only key that exits.
 
 ## How play-only mode works
 
