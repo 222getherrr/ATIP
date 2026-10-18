@@ -41,6 +41,10 @@ log() { printf '\033[1;32m[ASF]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[ASF]\033[0m WARNING: %s\n' "$*" >&2; }
 die() { printf '\033[1;31m[ASF]\033[0m ERROR: %s\n' "$*" >&2; exit 1; }
 
+github_download() { # full_github_url dest
+    curl -fsSL --retry 3 --connect-timeout 20 -o "$2" "${MIRROR}$1" || return 1
+}
+
 # -----------------------------------------------------------------------------
 #  Detect supported OS: Termux (proot Ubuntu) / Ubuntu / Debian
 # -----------------------------------------------------------------------------
